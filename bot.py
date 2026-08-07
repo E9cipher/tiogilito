@@ -57,7 +57,7 @@ async def on_command_error(ctx, error):
 
 async def sendMessage(ctx, message: str, reply: bool = False):
     newMessage = message + "\n"
-    newMessage += f"-# \- {bot.user} at {datetime.now(timezone.utc).isoformat()}"
+    newMessage += f"-# \- {bot.user} at {datetime.today().strftime('%Y-%m-%d %H:%M:%S')}"
     if reply:
         await ctx.message.reply(newMessage)
     else:
