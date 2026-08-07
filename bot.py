@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timezone
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -19,7 +20,9 @@ channels = {
 }
 
 def getChannel(channel: str):
-    if (channel not in channels): return ""
+    # Return the channel object or None if not found
+    if channel not in channels:
+        return None
     return bot.get_channel(channels[channel])
 
 @bot.event
@@ -41,18 +44,39 @@ async def on_message(message):
     # IMPORTANT: still check for commands
     await bot.process_commands(message)
 
+
+@bot.event
+async def on_command_error(ctx, error):
+    # Send a friendly message when I don't know what the hell they sent
+    if isinstance(error, commands.CommandNotFound):
+        invoked = ctx.message.content.split()[0] if getattr(ctx.message, 'content', None) else 'that command'
+        await sendMessage(ctx, f"Unknown command: {invoked}. Use !help to list commands.", True)
+    else:
+        # Log other errors for debugging
+        print(f"Unhandled command error: {error}")
+
+async def sendMessage(ctx, message: str, reply: bool = False):
+    newMessage = message + "\n"
+    newMessage += f"-# \- {bot.user} at {datetime.now(timezone.utc).isoformat()}"
+    if reply:
+        await ctx.message.reply(newMessage)
+    else:
+        await ctx.send(newMessage)
+
 # ctx the message object
 # ctx.send -> reply on the same channel
 # ctx.message.reply -> reply to the message (on ctx)
 
 @bot.command()
 async def ping(ctx):
-    await ctx.send("pong")
+    await sendMessage(ctx, "pong")
 
 @bot.command()
 async def sayhi(ctx, member: discord.Member = None):
     if (member is None): member = ctx.author
-    await ctx.message.reply(f"Hello {member.mention}, welcome! Make sure to read {getChannel('announcements').mention}!")
+    announcements = getChannel('announcements')
+    announce_mention = announcements.mention if announcements is not None else '#announcements'
+    await sendMessage(ctx, f"Hello {member.mention}, welcome! Make sure to read {announce_mention}!", True)
 
 try:
     bot.run(os.getenv("DISCORD_TOKEN"))
