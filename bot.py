@@ -1,17 +1,17 @@
 import os
-from datetime import datetime, timezone
+from datetime import datetime as dt
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 
 load_dotenv() # read the token from .env
 
-# Intents control the data Discord sends to the bot.
+# Intents controls the data Discord sends to the bot
 # message_content is required to read message text in commands
 intents = discord.Intents.default()
 intents.message_content = True
 
-bot = commands.Bot(command_prefix="!", intents=intents)
+bot = commands.Bot(command_prefix="!dn ", intents=intents)
 channels = {
     "general": 1534937452026921012,
     "announcements": 1534947035185156276,
@@ -38,7 +38,7 @@ async def on_message(message):
         return
 
     if bot.user in message.mentions:
-        await message.reply(f"Yoooo {message.author.mention} that's me!")
+        await message.reply(f"Hey {message.author.mention}, that's me!")
         await message.add_reaction("👋")
 
     # IMPORTANT: still check for commands
@@ -57,7 +57,7 @@ async def on_command_error(ctx, error):
 
 async def sendMessage(ctx, message: str, reply: bool = False):
     newMessage = message + "\n"
-    newMessage += f"-# \- {bot.user} at {datetime.today().strftime('%Y-%m-%d %H:%M:%S')}"
+    newMessage += f"-# 🪙🪙💸 - @e9cipher if I misbehave"
     if reply:
         await ctx.message.reply(newMessage)
     else:
@@ -77,6 +77,16 @@ async def sayhi(ctx, member: discord.Member = None):
     announcements = getChannel('announcements')
     announce_mention = announcements.mention if announcements is not None else '#announcements'
     await sendMessage(ctx, f"Hello {member.mention}, welcome! Make sure to read {announce_mention}!", True)
+
+@bot.command()
+async def mickey(ctx):
+    await sendMessage(ctx, "mouse 🐭")
+
+@bot.command()
+async def tutorial(ctx, member: discord.Member = None):
+    if member is None: member = ctx.author
+    await sendMessage(ctx, "<https://www.youtube.com/watch?v=dQw4w9WgXcQ>", True)
+
 
 try:
     bot.run(os.getenv("DISCORD_TOKEN"))
