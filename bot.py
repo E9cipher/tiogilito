@@ -1,5 +1,4 @@
 import os
-from datetime import datetime as dt
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -32,7 +31,7 @@ class General(commands.Cog):
         displayed_default="yourself",
         description="The member to greet",
     )):
-        if member is bot.user: return
+        if bot.user in ctx.message.mentions: return
         if (member is None): member = ctx.author
         announcements = getChannel('announcements')
         announce_mention = announcements.mention if announcements is not None else '#announcements'
@@ -84,8 +83,8 @@ async def on_message(message):
         return
 
     if bot.user in message.mentions:
-        await message.reply(f"Hey {message.author.mention}, that's me!")
         await message.add_reaction("👋")
+        await message.reply(f"Hey {message.author.mention}, that's me!")
 
     # IMPORTANT: still check for commands
     await bot.process_commands(message)
@@ -105,7 +104,7 @@ async def sendMessage(ctx, message: str, reply: bool = False):
     newMessage = message + "\n"
     newMessage += f"-# 🪙🪙💸 - @e9cipher if I misbehave"
     if reply:
-        await ctx.message.reply(newMessage)
+        await ctx.reply(newMessage)
     else:
         await ctx.send(newMessage)  
 
