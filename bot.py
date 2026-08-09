@@ -10,8 +10,53 @@ load_dotenv() # read the token from .env
 # message_content is required to read message text in commands
 intents = discord.Intents.default()
 intents.message_content = True
+prefix = "!dn "
 
-bot = commands.Bot(command_prefix="!dn ", intents=intents)
+# ctx the message object
+# ctx.send -> reply on the same channel
+# ctx.message.reply -> reply to the message (on ctx) 
+ 
+class General(commands.Cog):
+    """General bot commands"""
+
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.command(help="Check if the bot is alive")
+    async def ping(self, ctx):
+        await sendMessage(ctx, "pong")
+
+    @commands.command(help="Say hello to a new member (or yourself)")
+    async def sayhi(self, ctx, member: discord.Member = commands.parameter(
+        default=None,
+        displayed_default="yourself",
+        description="The member to greet",
+    )):
+        if (member is None): member = ctx.author
+        announcements = getChannel('announcements')
+        announce_mention = announcements.mention if announcements is not None else '#announcements'
+        await sendMessage(ctx, f"Hello {member.mention}, welcome! Make sure to read {announce_mention}!", True)
+
+    @commands.command(help="YouTube link to a very useful tutorial")
+    async def tutorial(self, ctx):
+        await sendMessage(ctx, "<https://www.youtube.com/watch?v=dQw4w9WgXcQ>")
+
+class Fun(commands.Cog):
+    """Funny commands, very useful"""
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.command()
+    async def mickey(self, ctx):
+        await sendMessage(ctx, "mouse 🐭")
+
+class TioGilitoBot(commands.Bot):
+    async def setup_hook(self):
+        # add_cog registers all commands inside that cog with the bot
+        await self.add_cog(General(self))
+
+
+bot = TioGilitoBot(command_prefix=prefix, intents=intents)
 channels = {
     "general": 1534937452026921012,
     "announcements": 1534947035185156276,
@@ -49,8 +94,8 @@ async def on_message(message):
 async def on_command_error(ctx, error):
     # Send a friendly message when I don't know what the hell they sent
     if isinstance(error, commands.CommandNotFound):
-        invoked = ctx.message.content.split()[0] if getattr(ctx.message, 'content', None) else 'that command'
-        await sendMessage(ctx, f"Unknown command: {invoked}. Use !help to list commands.", True)
+        invoked = ctx.message.content.split()[1] if getattr(ctx.message, 'content', None) else 'that command'
+        await sendMessage(ctx, f"Ummm where did you learn to write? \"{invoked}\" is not a valid command. Learn to use {prefix}help to list commands.", True)
     else:
         # Log other errors for debugging
         print(f"Unhandled command error: {error}")
@@ -61,32 +106,7 @@ async def sendMessage(ctx, message: str, reply: bool = False):
     if reply:
         await ctx.message.reply(newMessage)
     else:
-        await ctx.send(newMessage)
-
-# ctx the message object
-# ctx.send -> reply on the same channel
-# ctx.message.reply -> reply to the message (on ctx)
-
-@bot.command()
-async def ping(ctx):
-    await sendMessage(ctx, "pong")
-
-@bot.command()
-async def sayhi(ctx, member: discord.Member = None):
-    if (member is None): member = ctx.author
-    announcements = getChannel('announcements')
-    announce_mention = announcements.mention if announcements is not None else '#announcements'
-    await sendMessage(ctx, f"Hello {member.mention}, welcome! Make sure to read {announce_mention}!", True)
-
-@bot.command()
-async def mickey(ctx):
-    await sendMessage(ctx, "mouse 🐭")
-
-@bot.command()
-async def tutorial(ctx, member: discord.Member = None):
-    if member is None: member = ctx.author
-    await sendMessage(ctx, "<https://www.youtube.com/watch?v=dQw4w9WgXcQ>", True)
-
+        await ctx.send(newMessage)  
 
 try:
     bot.run(os.getenv("DISCORD_TOKEN"))
