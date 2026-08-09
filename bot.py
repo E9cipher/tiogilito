@@ -32,6 +32,7 @@ class General(commands.Cog):
         displayed_default="yourself",
         description="The member to greet",
     )):
+        if member is bot.user: return
         if (member is None): member = ctx.author
         announcements = getChannel('announcements')
         announce_mention = announcements.mention if announcements is not None else '#announcements'
