@@ -2,6 +2,7 @@ import os
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
+from db_setup import set_shouldping, get_shouldping
 
 load_dotenv() # read the token from .env
 
@@ -13,8 +14,8 @@ prefix = "!dn "
 
 # ctx the message object
 # ctx.send -> reply on the same channel
-# ctx.message.reply -> reply to the message (on ctx) 
- 
+# ctx.message.reply -> reply to the message (on ctx)
+
 class General(commands.Cog):
     """General bot commands"""
 
@@ -50,18 +51,30 @@ class Fun(commands.Cog):
     async def mickey(self, ctx):
         await sendMessage(ctx, "mouse 🐭")
 
+class Settings(commands.Cog):
+    """To adjust preferences"""
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.command(help="Whether the bot should reply to you or not")
+    async def shouldping(self, ctx):
+        current = await get_shouldping(ctx.author.id)
+        newvalue = not current
+        await set_shouldping(ctx.author.id, newvalue)
+        await sendMessage(ctx, f"Replies are turned {'On' if newvalue else 'Off'}")
+
 class TioGilitoBot(commands.Bot):
     async def setup_hook(self):
         # add_cog registers all commands inside that cog with the bot
         await self.add_cog(General(self))
-
+        await self.add_cog(Fun(self))
+        await self.add_cog(Settings(self))
 
 bot = TioGilitoBot(command_prefix=prefix, intents=intents)
 channels = {
     "general": 1534937452026921012,
     "announcements": 1534947035185156276,
-    "spam": 1534939255799943411,
-    "juegos": 1534950293605843005
+    "spam": 1534939255799943411
 }
 
 def getChannel(channel: str):
@@ -69,6 +82,14 @@ def getChannel(channel: str):
     if channel not in channels:
         return None
     return bot.get_channel(channels[channel])
+
+roles = {
+    "Moderator": 1534940065912848424,
+    "normal dude": 1534940714280943767
+}
+
+def isModerator(user: discord.Member):
+    return any(role.id == roles["Moderator"] for role in user.roles)
 
 @bot.event
 async def on_ready():
@@ -96,6 +117,8 @@ async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
         invoked = ctx.message.content.split()[1] if getattr(ctx.message, 'content', None) else 'that command'
         await sendMessage(ctx, f"Ummm where did you learn to write? \"{invoked}\" is not a valid command. Learn to use {prefix}help to list commands.", True)
+    elif isinstance(error, commands.MissingRole):
+	    await sendMessage(ctx, f"Nice try, but you need the `{error.missing_role}` role for that", True)
     else:
         # Log other errors for debugging
         print(f"Unhandled command error: {error}")
@@ -106,14 +129,21 @@ async def sendMessage(ctx, message: str, reply: bool = False):
     if reply:
         await ctx.reply(newMessage)
     else:
-        await ctx.send(newMessage)  
+        await ctx.send(newMessage)
 
 try:
     bot.run(os.getenv("DISCORD_TOKEN"))
 except KeyboardInterrupt:
     print("Ctrl+C detected, exiting cleanly...")
 except discord.LoginFailure:
-    print("Discord login failure. Check .env for the OAuth2 token. Did it expire?")
+    print("Discord login failure:")
+    if os.path.isfile(".env"):
+        print(".env file found. Did the token expire?")
+    else:
+        print(".env file does not exist. Aaaand...")
+        for x in range(0, 20):
+            print("You didn't say the magic word!!!")
+
 except Exception as e:
     print(f"Something went terribly wrong: {e}")
 finally:
