@@ -1,5 +1,7 @@
 import asyncio
+
 import aiosqlite
+
 
 async def init_db():
     async with aiosqlite.connect("settings.db") as db:
@@ -11,6 +13,7 @@ async def init_db():
         """)
         await db.commit()
 
+
 async def get_shouldping(user_id: int) -> bool:
     async with aiosqlite.connect("settings.db") as db:
         cursor = await db.execute(
@@ -20,14 +23,19 @@ async def get_shouldping(user_id: int) -> bool:
         # If the user has no row yet, default to True (should_ping)
         return bool(row[0]) if row else True
 
+
 async def set_shouldping(user_id: int, should_ping: bool):
     async with aiosqlite.connect("settings.db") as db:
-        await db.execute("""
+        await db.execute(
+            """
             INSERT INTO user_settings (user_id, should_ping)
             VALUES (?, ?)
             ON CONFLICT(user_id) DO UPDATE SET should_ping = excluded.should_ping
-        """, (user_id, int(should_ping)))
+        """,
+            (user_id, int(should_ping)),
+        )
         await db.commit()
+
 
 if __name__ == "__main__":
     asyncio.run(init_db())
