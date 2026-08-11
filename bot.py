@@ -118,7 +118,7 @@ async def on_command_error(ctx, error):
         invoked = ctx.message.content.split()[1] if getattr(ctx.message, 'content', None) else 'that command'
         await sendMessage(ctx, f"Ummm where did you learn to write? \"{invoked}\" is not a valid command. Learn to use {prefix}help to list commands.", True)
     elif isinstance(error, commands.MissingRole):
-	    await sendMessage(ctx, f"Nice try, but you need the `{error.missing_role}` role for that", True)
+        await sendMessage(ctx, f"Nice try, but you need the `{error.missing_role}` role for that", True)
     else:
         # Log other errors for debugging
         print(f"Unhandled command error: {error}")
