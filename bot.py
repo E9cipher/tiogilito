@@ -49,8 +49,7 @@ class General(commands.Cog):
         )
         await sendMessage(
             ctx,
-            f"Hello {member.mention}, welcome! Make sure to read {announce_mention}!",
-            True,
+            f"Hello {member.mention}, welcome! Make sure to read {announce_mention}!"
         )
 
     @commands.command(help="YouTube link to a very useful tutorial")
@@ -75,12 +74,35 @@ class Settings(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(help="Whether the bot should reply to you or not")
-    async def shouldping(self, ctx):
+    @commands.command(help="Whether the bot should reply to your messages or not")
+    async def shouldping(
+        self,
+        ctx,
+        value: str | None = commands.parameter(
+            description="on/off, leave empty for status",
+        ),
+    ):
         current = await get_shouldping(ctx.author.id)
-        newvalue = not current
-        await set_shouldping(ctx.author.id, newvalue)
-        await sendMessage(ctx, f"Replies are turned {'On' if newvalue else 'Off'}")
+        if value is None or value == "status":
+            await sendMessage(
+                ctx,
+                f"You have replies turned {'On' if current else 'Off'}"
+            )
+            return
+        if value == "on":
+            if current is True:
+                await sendMessage(ctx, "Hmmmm, replies are already on!")
+                return
+            await set_shouldping(ctx.author.id, True)
+            await sendMessage(ctx, "Replies turned On")
+        elif value == "off":
+            if current is False:
+                await sendMessage(ctx, "Hmmmm, replies are already off!")
+                return
+            await set_shouldping(ctx.author.id, False)
+            await sendMessage(ctx, "Replies are turned Off")
+        else:
+            await sendMessage(ctx, f"Warning: invalid value {value}. Use `on` or `off` and learn to write!")
 
 
 class TioGilitoBot(commands.Bot):
@@ -145,21 +167,20 @@ async def on_command_error(ctx, error):
         )
         await sendMessage(
             ctx,
-            f'Ummm where did you learn to write? "{invoked}" is not a valid command. Learn to use {prefix}help to list commands.',
-            True,
+            f'Ummm where did you learn to write? "{invoked}" is not a valid command. Learn to use {prefix}help to list commands.'
         )
     elif isinstance(error, commands.MissingRole):
         await sendMessage(
             ctx,
-            f"Nice try, but you need the `{error.missing_role}` role for that",
-            True,
+            f"Nice try, but you need the `{error.missing_role}` role for that"
         )
     else:
         # Log other errors for debugging
         print(f"Unhandled command error: {error}")
 
 
-async def sendMessage(ctx, message: str, reply: bool = False):
+async def sendMessage(ctx, message: str):
+    reply = await get_shouldping(ctx.author.id)
     newMessage = message + "\n"
     newMessage += "-# 🪙🪙💸 - @e9cipher if I misbehave"
     if reply:
