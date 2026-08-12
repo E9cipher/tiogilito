@@ -1,3 +1,4 @@
+import asyncio
 import os
 
 import discord
@@ -49,7 +50,7 @@ class General(commands.Cog):
         )
         await sendMessage(
             ctx,
-            f"Hello {member.mention}, welcome! Make sure to read {announce_mention}!"
+            f"Hello {member.mention}, welcome! Make sure to read {announce_mention}!",
         )
 
     @commands.command(help="YouTube link to a very useful tutorial")
@@ -85,8 +86,7 @@ class Settings(commands.Cog):
         current = await get_shouldping(ctx.author.id)
         if value is None or value == "status":
             await sendMessage(
-                ctx,
-                f"You have replies turned {'On' if current else 'Off'}"
+                ctx, f"You have replies turned {'On' if current else 'Off'}"
             )
             return
         if value == "on":
@@ -102,7 +102,10 @@ class Settings(commands.Cog):
             await set_shouldping(ctx.author.id, False)
             await sendMessage(ctx, "Replies are turned Off")
         else:
-            await sendMessage(ctx, f"Warning: invalid value {value}. Use `on` or `off` and learn to write!")
+            await sendMessage(
+                ctx,
+                f"Warning: invalid value {value}. Use `on` or `off` and learn to write!",
+            )
 
 
 class TioGilitoBot(commands.Bot):
@@ -167,12 +170,11 @@ async def on_command_error(ctx, error):
         )
         await sendMessage(
             ctx,
-            f'Ummm where did you learn to write? "{invoked}" is not a valid command. Learn to use {prefix}help to list commands.'
+            f'Ummm where did you learn to write? "{invoked}" is not a valid command. Learn to use {prefix}help to list commands.',
         )
     elif isinstance(error, commands.MissingRole):
         await sendMessage(
-            ctx,
-            f"Nice try, but you need the `{error.missing_role}` role for that"
+            ctx, f"Nice try, but you need the `{error.missing_role}` role for that"
         )
     else:
         # Log other errors for debugging
@@ -189,8 +191,13 @@ async def sendMessage(ctx, message: str):
         await ctx.send(newMessage)
 
 
+async def main():
+    async with bot:
+        await bot.start(os.getenv("DISCORD_TOKEN"))
+
+
 try:
-    bot.run(os.getenv("DISCORD_TOKEN"))
+    asyncio.run(main())
 except KeyboardInterrupt:
     print("Ctrl+C detected, exiting cleanly...")
 except discord.LoginFailure:
