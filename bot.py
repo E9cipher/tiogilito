@@ -215,7 +215,7 @@ async def main():
 try:
     asyncio.run(main())
 except KeyboardInterrupt:
-    print("Ctrl+C detected, exiting cleanly...")
+    print("\nCtrl+C detected, exiting cleanly...")
 except discord.LoginFailure:
     print("Discord login failure:")
     if os.path.isfile(".env"):
