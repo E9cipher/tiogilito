@@ -18,6 +18,7 @@ prefix = "!dn "
 # ctx the message object
 # ctx.send -> reply on the same channel
 # ctx.message.reply -> reply to the message (on ctx)
+roles = {"Moderator": 1534940065912848424, "normal dude": 1534940714280943767}
 
 
 class General(commands.Cog):
@@ -108,12 +109,28 @@ class Settings(commands.Cog):
             )
 
 
+class Moderation(commands.Cog):
+    """Moderator-only actions"""
+
+    def __init__(self, bot):
+        self.bot = bot
+
+    @commands.command(help="Ban a specific user")
+    @commands.has_role(roles["Moderator"])
+    async def ban(
+        self, ctx, user: discord.member = commands.parameter(help="The member to ban")
+    ):
+        await user.ban()
+        await sendMessage(ctx, f"User {user} has been successfully banned")
+
+
 class TioGilitoBot(commands.Bot):
     async def setup_hook(self):
         # add_cog registers all commands inside that cog with the bot
         await self.add_cog(General(self))
         await self.add_cog(Fun(self))
         await self.add_cog(Settings(self))
+        await self.add_cog(Moderation(self))
 
 
 bot = TioGilitoBot(command_prefix=prefix, intents=intents)
@@ -129,9 +146,6 @@ def getChannel(channel: str):
     if channel not in channels:
         return None
     return bot.get_channel(channels[channel])
-
-
-roles = {"Moderator": 1534940065912848424, "normal dude": 1534940714280943767}
 
 
 def isModerator(user: discord.Member):
