@@ -118,7 +118,9 @@ class Moderation(commands.Cog):
     @commands.command(help="Ban a specific user")
     @commands.has_role(roles["Moderator"])
     async def ban(
-        self, ctx, user: discord.member = commands.parameter(help="The member to ban")
+        self,
+        ctx,
+        user: discord.member = commands.parameter(description="The member to ban"),
     ):
         await user.ban()
         await sendMessage(ctx, f"User {user} has been successfully banned")
