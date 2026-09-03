@@ -21,21 +21,26 @@ prefix = "!dn "
 roles = {"Moderator": 1534940065912848424, "normal dude": 1534940714280943767}
 
 
+def isrunningAsAService() -> bool:
+    # Check if the bot is running as a service (systemd, etc.)
+    return "INVOCATION_ID" in os.environ
+
+
 class General(commands.Cog):
     """General bot commands"""
 
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @commands.command(help="Check if the bot is alive")
-    async def ping(self, ctx):
+    async def ping(self, ctx: commands.Context["TioGilitoBot"]):
         await sendMessage(ctx, "pong")
 
     @commands.command(help="Say hello to a new member (or yourself)")
     async def sayhi(
         self,
-        ctx,
-        member: discord.Member = commands.parameter(
+        ctx: commands.Context["TioGilitoBot"],
+        member: discord.abc.User | None = commands.parameter(
             default=None,
             displayed_default="yourself",
             description="The member to greet",
@@ -46,40 +51,41 @@ class General(commands.Cog):
         if member is None:
             member = ctx.author
         announcements = getChannel("announcements")
-        announce_mention = (
-            announcements.mention if announcements is not None else "#announcements"
-        )
+        if isinstance(announcements, discord.abc.GuildChannel):
+            announce_mention = announcements.mention
+        else:
+            announce_mention = "#announcements"
         await sendMessage(
             ctx,
             f"Hello {member.mention}, welcome! Make sure to read {announce_mention}!",
         )
 
     @commands.command(help="YouTube link to a very useful tutorial")
-    async def tutorial(self, ctx):
+    async def tutorial(self, ctx: commands.Context["TioGilitoBot"]):
         await sendMessage(ctx, "<https://www.youtube.com/watch?v=dQw4w9WgXcQ>")
 
 
 class Fun(commands.Cog):
     """Funny commands, very useful"""
 
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @commands.command()
-    async def mickey(self, ctx):
+    async def mickey(self, ctx: commands.Context["TioGilitoBot"]):
         await sendMessage(ctx, "mouse 🐭")
 
 
 class Settings(commands.Cog):
     """To adjust preferences"""
 
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @commands.command(help="Whether the bot should reply to your messages or not")
     async def shouldping(
         self,
-        ctx,
+        ctx: commands.Context["TioGilitoBot"],
         value: str | None = commands.parameter(
             description="on/off, leave empty for status",
         ),
@@ -112,15 +118,15 @@ class Settings(commands.Cog):
 class Moderation(commands.Cog):
     """Moderator-only actions"""
 
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
 
     @commands.command(help="Ban a specific user")
     @commands.has_role(roles["Moderator"])
     async def ban(
         self,
-        ctx,
-        user: discord.member = commands.parameter(description="The member to ban"),
+        ctx: commands.Context["TioGilitoBot"],
+        user: discord.Member = commands.parameter(description="The member to ban"),
     ):
         await user.ban()
         await sendMessage(ctx, f"User {user} has been successfully banned")
@@ -157,12 +163,13 @@ def isModerator(user: discord.Member):
 @bot.event
 async def on_ready():
     # Fires once the bot is connected
-    print(f"Logged in as {bot.user} (ID: {bot.user.id})")
+    user = bot.user
+    print(f"Logged in as {user} (ID: {user.id if user is not None else 'NULL'})")
     print("Ready for duty")
 
 
 @bot.event
-async def on_message(message):
+async def on_message(message: discord.Message):
     # Ignore the bot's own messages, to avoid infinite loops
     if message.author == bot.user:
         return
@@ -176,7 +183,9 @@ async def on_message(message):
 
 
 @bot.event
-async def on_command_error(ctx, error):
+async def on_command_error(
+    ctx: commands.Context["TioGilitoBot"], error: discord.abc.Snowflake
+):
     # Send a friendly message when I don't know what the hell they sent
     if isinstance(error, commands.CommandNotFound):
         invoked = (
@@ -197,7 +206,7 @@ async def on_command_error(ctx, error):
         print(f"Unhandled command error: {error}")
 
 
-async def sendMessage(ctx, message: str):
+async def sendMessage(ctx: commands.Context["TioGilitoBot"], message: str):
     reply = await get_shouldping(ctx.author.id)
     newMessage = message + "\n"
     newMessage += "-# 🪙🪙💸 - @e9cipher if I misbehave"
@@ -209,7 +218,10 @@ async def sendMessage(ctx, message: str):
 
 async def main():
     async with bot:
-        await bot.start(os.getenv("DISCORD_TOKEN"))
+        env = os.getenv("DISCORD_TOKEN")
+        if env is None:
+            return discord.LoginFailure
+        await bot.start(env)
 
 
 try:
