@@ -1,6 +1,7 @@
 import asyncio
 import os
 
+import aiohttp
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -24,6 +25,20 @@ roles = {"Moderator": 1534940065912848424, "normal dude": 1534940714280943767}
 def isrunningAsAService() -> bool:
     # Check if the bot is running as a service (systemd, etc.)
     return "INVOCATION_ID" in os.environ
+
+
+async def canIReachDiscord(timeout: float = 3.0) -> bool:
+    try:
+        async with (
+            aiohttp.ClientSession() as session,
+            session.get(
+                "https://discord.com/api/v10",
+                timeout=aiohttp.ClientTimeout(total=timeout),
+            ),
+        ):
+            return True
+    except (aiohttp.ClientError, TimeoutError):
+        return False
 
 
 class General(commands.Cog):
@@ -216,7 +231,7 @@ async def sendMessage(ctx: commands.Context["TioGilitoBot"], message: str):
         await ctx.send(newMessage)
 
 
-async def main():
+async def startBot():
     async with bot:
         env = os.getenv("DISCORD_TOKEN")
         if env is None:
@@ -224,19 +239,42 @@ async def main():
         await bot.start(env)
 
 
-try:
-    asyncio.run(main())
-except KeyboardInterrupt:
-    print("\nCtrl+C detected, exiting cleanly...")
-except discord.LoginFailure:
-    print("Discord login failure:")
-    if os.path.isfile(".env"):
-        print(".env file found. Did the token expire?")
-    else:
-        print(".env file does not exist. Aaaand...")
-        for x in range(20):
-            print("You didn't say the magic word!!!")
-except Exception as e:  # noqa: BLE001
-    print(f"Something went terribly wrong: {e}")
-finally:
-    print("\nSee ya!")
+should_retry = True  # for unexpected errors, retry once
+
+
+def main() -> bool:
+    """Returns True if the bot should be restarted, False if it should stay stopped."""
+    global should_retry  # use the outer variable
+    try:
+        asyncio.run(startBot())
+    except KeyboardInterrupt:
+        print("\nCtrl+C detected, exiting cleanly...")
+        return False  # let me stop the script!!!
+    except discord.LoginFailure:
+        print("Discord login failure:")
+        reachable = asyncio.run(canIReachDiscord())
+        if reachable is False:
+            print("Error: cannot connect to discord servers")
+        if os.path.isfile(".env"):
+            print(".env file found. Did the token expire?")
+        else:
+            print(".env file does not exist. Aaaand...")
+            for _ in range(20):
+                print("You didn't say the magic word!!!")
+        return True  # retry, internet might come online
+    except Exception as e:  # noqa: BLE001
+        print(f"Something went terribly wrong: {e}")
+        if not should_retry:
+            return False
+        should_retry = False
+        return True  # unexpected crash, retry if not already done
+    finally:
+        print("\nSee ya!")
+    return True
+
+
+if isrunningAsAService():
+    while main():
+        pass
+else:
+    main()
