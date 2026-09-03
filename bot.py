@@ -20,6 +20,11 @@ prefix = "!dn "
 # ctx.send -> reply on the same channel
 # ctx.message.reply -> reply to the message (on ctx)
 roles = {"Moderator": 1534940065912848424, "normal dude": 1534940714280943767}
+channels = {
+    "general": 1534937452026921012,
+    "announcements": 1534947035185156276,
+    "spam": 1534939255799943411,
+}
 
 
 def isrunningAsAService() -> bool:
@@ -157,11 +162,6 @@ class TioGilitoBot(commands.Bot):
 
 
 bot = TioGilitoBot(command_prefix=prefix, intents=intents)
-channels = {
-    "general": 1534937452026921012,
-    "announcements": 1534947035185156276,
-    "spam": 1534939255799943411,
-}
 
 
 def getChannel(channel: str):
