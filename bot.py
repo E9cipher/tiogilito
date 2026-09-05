@@ -91,7 +91,7 @@ class Fun(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(help="Say hi to Mickey!")
     async def mickey(self, ctx: commands.Context["TioGilitoBot"]):
         await sendMessage(ctx, "mouse 🐭")
 
