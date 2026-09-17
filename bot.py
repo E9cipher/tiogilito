@@ -272,12 +272,14 @@ def main() -> bool:
         print("\nSee ya!")
     return True
 
+
 def start():
     if isrunningAsAService():
         while main():
             pass
     else:
         main()
+
 
 if __name__ == "__main__":
     start()
