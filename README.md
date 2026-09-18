@@ -16,3 +16,7 @@ In commit [8c820df](https://github.com/E9Cipher/tiogilito/commit/7498a1d0361ede6
 on the original file was added. It was created in order for the original bot to interact with it (something like a test user).
 Please note that a bot is not the same as a human user, so expect some things not to be avaliable. This bot must be run separately
 and has a different discord key than the original.
+
+## Dotenv discord key format
+For `bot.py`: `DISCORD_TOKEN=<YOUR_TOKEN_HERE>`
+For `dummy.py`: `DISCORD_DUMMY_TOKEN=<OTHER_TOKEN_HERE`
