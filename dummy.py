@@ -12,7 +12,7 @@ load_dotenv()  # read the token from .env
 
 intents = discord.Intents.default()
 intents.message_content = True
-prefix = "!dy "
+prefix = "!gf "
 
 
 class GeneralDummyBot(commands.Cog):
