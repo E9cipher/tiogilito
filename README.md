@@ -17,6 +17,8 @@ on the original file was added. It was created in order for the original bot to 
 Please note that a bot is not the same as a human user, so expect some things not to be avaliable. This bot must be run separately
 and has a different discord key than the original.
 
-## Dotenv discord key format
-For `bot.py`: `DISCORD_TOKEN=<YOUR_TOKEN_HERE>`
-For `dummy.py`: `DISCORD_DUMMY_TOKEN=<OTHER_TOKEN_HERE`
+## `.env` discord key format
+```text
+DISCORD_TOKEN=<YOUR_TOKEN_HERE>
+DISCORD_DUMMY_TOKEN=<OTHER_TOKEN_HERE
+```
