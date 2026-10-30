@@ -20,5 +20,5 @@ and has a different discord key than the original.
 ## `.env` discord key format
 ```text
 DISCORD_TOKEN=<YOUR_TOKEN_HERE>
-DISCORD_DUMMY_TOKEN=<OTHER_TOKEN_HERE
+DISCORD_DUMMY_TOKEN=<OTHER_TOKEN_HERE>
 ```
